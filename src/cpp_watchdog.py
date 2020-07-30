@@ -11,25 +11,29 @@ import getopt
 import subprocess
 
 build_command = ''
+test_bin = ''
 
 def get_args(argv):
     home = '.'
     build_command = ''
+    test_bin = f'{home}/build/test/test'
     files = [home]
 
-    optlist, args = getopt.getopt(argv, 'h:b:', ['home=', 'build-command='])
+    optlist, args = getopt.getopt(argv, 'h:b:t:', ['home=', 'build-command=', 'test-bin='])
     for opt, arg in optlist:
         if opt in ('-h', '-home'):
             home = arg
         elif opt in ('-b', '--build-command'):
             build_command = arg
+        elif opt in ('-t', '--test-bin'):
+            test_bin = arg
 
     if build_command == '':
         build_command = f'/usr/bin/cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_CC_COMPILER:FILEPATH=/usr/bin/g++ -DCMAKE_CXX_COMPILER:FILEPATH=/usr/bin/g++ -H{home} -B{home}/build'
     if len(args) != 0:
         files = args
 
-    return [build_command, files]
+    return [build_command, test_bin, files]
 
 def event_handler(event):
     global build_command
@@ -37,8 +41,11 @@ def event_handler(event):
     completed_proc = subprocess.run(build_command.split())
     print(f'Build returned: {completed_proc.returncode}')
 
+    completed_proc = subprocess.run(test_bin)
+    print(f'Test returned: {completed_proc.returncode}')
+
 if __name__ == "__main__":
-    build_command, files = get_args(sys.argv[1:])
+    build_command, test_bin, files = get_args(sys.argv[1:])
 
     # Setting files event handler
     wm = pyinotify.WatchManager()
