@@ -8,6 +8,9 @@
 import sys
 import pyinotify
 import getopt
+import subprocess
+
+build_command = ''
 
 def get_args(argv):
     home = '.'
@@ -22,14 +25,17 @@ def get_args(argv):
             build_command = arg
 
     if build_command == '':
-        build_command = f'/usr/bin/cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_CC_COMPILER:FILEPATH=/usr/bin/g++ -DCMAKE_CXX_COMPILER:FILEPATH=/usr/bin/g++ -H{home} -B{home}/build -G "Unix Makefiles"'
+        build_command = f'/usr/bin/cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_CC_COMPILER:FILEPATH=/usr/bin/g++ -DCMAKE_CXX_COMPILER:FILEPATH=/usr/bin/g++ -H{home} -B{home}/build'
     if len(args) != 0:
         files = args
 
     return [build_command, files]
 
 def event_handler(event):
-    print(f'Something happened: {event}')
+    global build_command
+
+    completed_proc = subprocess.run(build_command.split())
+    print(f'Build returned: {completed_proc.returncode}')
 
 if __name__ == "__main__":
     build_command, files = get_args(sys.argv[1:])
