@@ -5,11 +5,15 @@
 @date: 30.07.20
 '''
 
+from window import Window
+
 import sys
+import os 
 import pyinotify
 import getopt
 import subprocess
 
+window = Window()
 build_command = ''
 test_bin = ''
 
@@ -29,7 +33,7 @@ def get_args(argv):
             test_bin = arg
 
     if build_command == '':
-        build_command = f'/usr/bin/cmake --no-warn-unused-cli -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_CC_COMPILER:FILEPATH=/usr/bin/g++ -DCMAKE_CXX_COMPILER:FILEPATH=/usr/bin/g++ -H{home} -B{home}/build'
+        build_command = f'/usr/bin/cmake --build build --config Debug --target all -- -j 10'
     if len(args) != 0:
         files = args
 
@@ -38,14 +42,22 @@ def get_args(argv):
 def event_handler(event):
     global build_command
 
-    completed_proc = subprocess.run(build_command.split())
-    print(f'Build returned: {completed_proc.returncode}')
+    # print('Event')
 
-    completed_proc = subprocess.run(test_bin)
-    print(f'Test returned: {completed_proc.returncode}')
+    window.display_build_start()
+    devnull = open(os.devnull, 'w')
+    completed_proc = subprocess.run(build_command.split(), stdout=devnull, stderr=subprocess.STDOUT)
+    window.display_build_res(completed_proc.returncode)
+
+    if completed_proc.returncode == 0:
+        completed_proc = subprocess.run(test_bin, stdout=devnull)
+        window.display_tests(completed_proc.stdout)
 
 if __name__ == "__main__":
     build_command, test_bin, files = get_args(sys.argv[1:])
+
+    # Initial run
+    event_handler(None)
 
     # Setting files event handler
     wm = pyinotify.WatchManager()
