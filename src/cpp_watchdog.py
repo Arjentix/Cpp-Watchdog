@@ -14,6 +14,7 @@ import os
 import pyinotify
 import getopt
 import subprocess
+import json
 
 window = Window()
 build_command = ''
@@ -45,16 +46,20 @@ def event_handler(event):
     global window, build_command
 
     window.display_build_start()
-    devnull = open(os.devnull, 'w')
     completed_proc = subprocess.run(build_command.split(), capture_output=True)
     window.display_build_status(completed_proc.returncode)
 
     if completed_proc.returncode == 0:
-        completed_proc = subprocess.run(test_bin, capture_output=True)
-        window.display_tests(completed_proc.stdout)
+        result_file = 'watchdog_test_results.json'
+        devnull = open(os.devnull, 'w')
+        completed_proc = subprocess.run([test_bin, f'--gtest_output=json:{result_file}'], stdout=devnull)
+
+        with open(result_file) as json_file:
+            test_results = json.load(json_file)
+            window.display_tests(test_results)
+        os.remove(result_file)            
+
     else:
-        # print("stdout is:", completed_proc.stdout)
-        # print("stderr is:", completed_proc.stderr)
         window.display_build_output(completed_proc.stderr)
 
 if __name__ == "__main__":
