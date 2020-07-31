@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 '''
 @author: Polyakov Daniil
 @mail: arjentix@gmail.com
@@ -41,8 +43,6 @@ def get_args(argv):
 
 def event_handler(event):
     global build_command
-
-    # print('Event')
 
     window.display_build_start()
     devnull = open(os.devnull, 'w')
