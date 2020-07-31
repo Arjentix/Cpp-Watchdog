@@ -35,23 +35,27 @@ def get_args(argv):
             test_bin = arg
 
     if build_command == '':
-        build_command = f'/usr/bin/cmake --build build --config Debug --target all -- -j 10'
+        build_command = '/usr/bin/cmake --build build --config Debug --target all -- -j 10'
     if len(args) != 0:
         files = args
 
     return [build_command, test_bin, files]
 
 def event_handler(event):
-    global build_command
+    global window, build_command
 
     window.display_build_start()
     devnull = open(os.devnull, 'w')
-    completed_proc = subprocess.run(build_command.split(), stdout=devnull, stderr=subprocess.STDOUT)
-    window.display_build_res(completed_proc.returncode)
+    completed_proc = subprocess.run(build_command.split(), capture_output=True)
+    window.display_build_status(completed_proc.returncode)
 
     if completed_proc.returncode == 0:
-        completed_proc = subprocess.run(test_bin, stdout=devnull)
+        completed_proc = subprocess.run(test_bin, capture_output=True)
         window.display_tests(completed_proc.stdout)
+    else:
+        # print("stdout is:", completed_proc.stdout)
+        # print("stderr is:", completed_proc.stderr)
+        window.display_build_output(completed_proc.stderr)
 
 if __name__ == "__main__":
     build_command, test_bin, files = get_args(sys.argv[1:])
@@ -64,7 +68,7 @@ if __name__ == "__main__":
     notifier = pyinotify.Notifier(wm, event_handler)
     for file in files:
         wm.add_watch(file, pyinotify.IN_CLOSE_WRITE | pyinotify.IN_DELETE |
-                           pyinotify.IN_DELETE_SELF | pyinotify.IN_MOVE_SELF|
+                           pyinotify.IN_DELETE_SELF | pyinotify.IN_MOVE_SELF |
                            pyinotify.IN_MOVED_FROM | pyinotify.IN_MOVED_TO)
 
     try:
@@ -72,4 +76,5 @@ if __name__ == "__main__":
             daemonize=False
         )
     except pyinotify.NotifierError as err:
+        del window
         print(err, file=sys.stderr)
