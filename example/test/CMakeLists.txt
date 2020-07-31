@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0.0)
 include(CTest)
 enable_testing()
 
-set(THIS foo_test)
+set(THIS awesome_lib_test)
 
 set(SOURCE
   foo_test.cpp
@@ -24,7 +24,7 @@ target_include_directories(${THIS} PRIVATE
 
 target_link_libraries(${THIS} PRIVATE
     gtest_main
-    foo
+    awesome_lib
 )
 
 add_test(
