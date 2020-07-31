@@ -7,6 +7,7 @@ set(THIS foo_test)
 
 set(SOURCE
   foo_test.cpp
+  bar_test.cpp
 )
 
 add_executable(${THIS} ${SOURCE})

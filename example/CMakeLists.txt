@@ -8,6 +8,7 @@ set(THIS foo)
 
 set(SOURCE
   src/foo.cpp
+  src/bar.cpp
 )
 
 set(BUILD_FLAGS "-Wall -Wextra -pedantic -Werror")
