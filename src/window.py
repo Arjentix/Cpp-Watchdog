@@ -48,8 +48,6 @@ class Window:
         self._screen.move(self.BUILD_STATUS_POS[0], self.BUILD_STATUS_POS[1])
         self._screen.delch()
         self._display_status(status == 0, curses.A_BOLD)
-        
-        self._screen.refresh()
 
     def display_build_output(self, output):
         self._screen.move(self.OUTPUT_POS[0], self.OUTPUT_POS[1])
@@ -83,6 +81,7 @@ class Window:
             self._screen.addstr('✓', self.OK_ATTR | attribute)
         else:
             self._screen.addstr('🞪', self.ERROR_ATTR | attribute)
+        self._screen.refresh()
 
 
     def _twirl_stick(self):
