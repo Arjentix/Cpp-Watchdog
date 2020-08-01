@@ -25,6 +25,7 @@ class Window:
         self.TEST_ATTR = curses.color_pair(4)
         self.TEST_FAIL_ATTR = curses.A_DIM
         self.IMPORTANT_ATTR = curses.color_pair(3) | curses.A_BOLD
+        self.BUILD_ERROR_ATTR = curses.color_pair(3)
     
     def __del__(self):
         text = ''
@@ -52,7 +53,7 @@ class Window:
 
     def display_build_output(self, output):
         self._screen.move(self.OUTPUT_POS[0], self.OUTPUT_POS[1])
-        self._screen.addstr(output)
+        self._screen.addstr(output, self.BUILD_ERROR_ATTR)
         self._screen.refresh()
         return
 
@@ -109,15 +110,16 @@ class Window:
                             ' (' + test['time'] + ')', self.TEST_ATTR)
 
         if failed:
-            info = ''
+            self._screen.addstr(':', self.TEST_ATTR)
             for failure in test['failures']:
-                info += ':\n' + failure['failure']
+                self._screen.addstr('\n        • ', self.ERROR_ATTR)
+                info = failure['failure']
 
+                # Adding some tabs for beauty
                 start_pos = info.find('\n')
                 while start_pos != -1:
-                    info = info[0 : start_pos + 1] + '        ' + info[start_pos + 1:]
+                    info = info[0 : start_pos + 1] + '          ' + info[start_pos + 1:]
                     start_pos = info.find('\n', start_pos + 1)
-
-            self._screen.addstr(info, self.TEST_FAIL_ATTR)
+                self._screen.addstr(info, self.TEST_FAIL_ATTR)
 
         self._screen.addch('\n')
