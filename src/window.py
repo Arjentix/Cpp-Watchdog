@@ -26,25 +26,34 @@ class Window:
         self.TEST_FAIL_ATTR = curses.A_DIM
         self.IMPORTANT_ATTR = curses.color_pair(3) | curses.A_BOLD
         self.BUILD_ERROR_ATTR = curses.color_pair(3)
+
+        self.KEY_ENTER = curses.KEY_ENTER
+        self._key_to_handler = {}
+        self._alive = True
+        self._input_thread = Thread(target=self._process_input)
+        self._input_thread.start()
     
     def __del__(self):
-        text = ''
-        for y in (0, 10):
-            text += self._screen.getstr(y, 0).decode(encoding='utf-8')
         curses.echo()
         curses.endwin()
-        print(text)
+
+    def stop(self):
+        self._alive = False
+        self._building = False
+    
+    def add_key_handler(self, key, handler):
+        self._key_to_handler[key] = handler
     
     def display_build_start(self):
         self._building = True
         self._screen.clear()
         self._screen.addstr('Building: ', self.IMPORTANT_ATTR)
-        self._thread = Thread(target=self._twirl_stick)
-        self._thread.start()
+        self._twirl_thread = Thread(target=self._twirl_stick)
+        self._twirl_thread.start()
     
     def display_build_status(self, status):
         self._building = False
-        self._thread.join()
+        self._twirl_thread.join()
         self._screen.move(self.BUILD_STATUS_POS[0], self.BUILD_STATUS_POS[1])
         self._screen.delch()
         self._display_status(status == 0, curses.A_BOLD)
@@ -83,6 +92,13 @@ class Window:
             self._screen.addstr('🞪', self.ERROR_ATTR | attribute)
         self._screen.refresh()
 
+    def _process_input(self):
+        while self._alive:
+            c = self._screen.getch()
+            # print('Hi from input. C =', c)
+            if c in self._key_to_handler:
+                self._key_to_handler[c]()
+            time.sleep(0.2)
 
     def _twirl_stick(self):
         chars = ['/', '-', '\\']
