@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 #include "bar.h"
 
-TEST(bar, a_char) {
+TEST(bar, letters) {
     ASSERT_EQ(bar('a'), 'b');
 }
 
-TEST(bar, 8_char) {
-    ASSERT_EQ(bar('8'), '9');
+TEST(bar, numbers) {
+    EXPECT_EQ(bar('0'), '1');
+    EXPECT_EQ(bar('1'), '2');
+    EXPECT_EQ(bar('8'), '9');
 }
