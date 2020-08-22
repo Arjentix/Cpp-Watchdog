@@ -89,13 +89,12 @@ class Window:
         if is_ok:
             self._screen.addstr('✓', self.OK_ATTR | attribute)
         else:
-            self._screen.addstr('🞪', self.ERROR_ATTR | attribute)
+            self._screen.addstr('✗', self.ERROR_ATTR | attribute)
         self._screen.refresh()
 
     def _process_input(self):
         while self._alive:
             c = self._screen.getch()
-            # print('Hi from input. C =', c)
             if c in self._key_to_handler:
                 self._key_to_handler[c]()
             time.sleep(0.2)

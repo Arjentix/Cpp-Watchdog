@@ -7,19 +7,17 @@
 @date: 30.07.20
 '''
 
+from event_handler import EventHandler
 from window import Window
 
 import sys
-import os 
-import signal 
-import pyinotify
+import time 
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler 
 import getopt
-import subprocess
-import json
 
 window = Window()
-build_command = ''
-test_bin = ''
+stop = False
 
 def get_args(argv):
     home = '.'
@@ -37,67 +35,50 @@ def get_args(argv):
             test_bin = arg
 
     if build_command == '':
-        build_command = '/usr/bin/cmake --build build --config Debug --target all -- -j 10'
+        build_command = 'cmake --build build --config Debug --target all -- -j 10'
     if len(args) != 0:
         files = args
 
     return [build_command, test_bin, files]
 
-def event_handler(event = None):
-    global window, build_command
-
-    window.display_build_start()
-    completed_proc = subprocess.run(build_command.split(), capture_output=True)
-    window.display_build_status(completed_proc.returncode)
-
-    if completed_proc.returncode == 0:
-        result_file = 'watchdog_test_results.json'
-        devnull = open(os.devnull, 'w')
-        completed_proc = subprocess.run([test_bin, f'--gtest_output=json:{result_file}'], stdout=devnull)
-
-        with open(result_file) as json_file:
-            test_results = json.load(json_file)
-            window.display_tests(test_results)
-        os.remove(result_file)            
-
-    else:
-        window.display_build_output(completed_proc.stderr)
-
 def quit_program():
-    global window
+    global window, stop
     window.stop()
-    os.kill(os.getpid(), signal.SIGINT) # To stop pyinotify loop
+    stop = True
 
 def main():
-    global window, build_command, test_bin
+    global window, stop
     build_command, test_bin, files = get_args(sys.argv[1:])
+    handler = EventHandler(window, build_command, test_bin)
+    observer = Observer()
+    def rerun():
+        observer.stop() # Stopping observer to avoid infinite loop
+        handler.on_any_event()
+        observer.run()
 
     # Initial run
-    event_handler(None)
-
-    # Setting files event handler
-    wm = pyinotify.WatchManager()
-    notifier = pyinotify.Notifier(wm, event_handler)
-    for file in files:
-        wm.add_watch(file, pyinotify.IN_CLOSE_WRITE | pyinotify.IN_DELETE |
-                           pyinotify.IN_DELETE_SELF | pyinotify.IN_MOVE_SELF |
-                           pyinotify.IN_MOVED_FROM | pyinotify.IN_MOVED_TO)
+    handler.on_any_event(None)
 
     # Registration of 3 types of Enter key
-    window.add_key_handler(window.KEY_ENTER, event_handler)
-    window.add_key_handler(10, event_handler)
-    window.add_key_handler(13, event_handler)
+    window.add_key_handler(window.KEY_ENTER, rerun)
+    window.add_key_handler(10, rerun)
+    window.add_key_handler(13, rerun)
 
     window.add_key_handler(ord('q'), quit_program)
 
-    try:
-        notifier.loop(
-            daemonize=False
-        )
-    except pyinotify.NotifierError as err:
-        print(err, file=sys.stderr)
+    # observer = Observer()
+    for file in files:
+        observer.schedule(handler, file, recursive=True)
+    observer.start()
 
-    del window
+    try:
+        while not stop:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        pass
+    observer.stop()
+    observer.join()
 
 if __name__ == "__main__":
     main()
+     
