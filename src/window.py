@@ -10,6 +10,7 @@ class Window:
         curses.use_default_colors()
         curses.noecho()
         self._screen.refresh()
+        self._screen.scrollok(True)
 
         self.BUILD_STATUS_POS = (0, 10)
         self.OUTPUT_POS = (2, 0)
