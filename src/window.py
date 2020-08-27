@@ -1,7 +1,7 @@
 import curses
+import sys
 from threading import Thread
 import time
-import json
 
 class Window:
     def __init__(self):
@@ -9,8 +9,9 @@ class Window:
         curses.start_color()
         curses.use_default_colors()
 
-        if (curses.has_colors() or curses.COLORS < 8):
+        if not curses.has_colors() or curses.COLORS < 8:
             print('Can\'t display colors. Terminating...')
+            sys.exit()
 
         curses.noecho()
         self._screen.refresh()
