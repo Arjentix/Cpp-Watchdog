@@ -7,6 +7,6 @@ TEST(bar, letters) {
 
 TEST(bar, numbers) {
     EXPECT_EQ(bar('0'), '1');
-    EXPECT_EQ(bar('1'), '2');
+    EXPECT_EQ(bar('1'), '3');
     EXPECT_EQ(bar('8'), '9');
 }
