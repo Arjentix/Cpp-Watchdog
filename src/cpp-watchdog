@@ -7,6 +7,7 @@
 @date: 30.07.20
 '''
 
+from pausing_observer import PausingObserver
 from event_handler import EventHandler
 from window import Window
 
@@ -49,20 +50,16 @@ def quit_program():
 def main():
     global window, stop
     build_command, test_bin, files = get_args(sys.argv[1:])
-    handler = EventHandler(window, build_command, test_bin)
-    observer = Observer()
-    def rerun():
-        observer.stop() # Stopping observer to avoid infinite loop
-        handler.on_any_event()
-        observer.run()
+    observer = PausingObserver()
+    handler = EventHandler(observer, window, build_command, test_bin)
 
     # Initial run
     handler.on_any_event(None)
 
     # Registration of 3 types of Enter key
-    window.add_key_handler(window.KEY_ENTER, rerun)
-    window.add_key_handler(10, rerun)
-    window.add_key_handler(13, rerun)
+    window.add_key_handler(window.KEY_ENTER, handler.on_any_event)
+    window.add_key_handler(10, handler.on_any_event)
+    window.add_key_handler(13, handler.on_any_event)
 
     window.add_key_handler(ord('q'), quit_program)
 
