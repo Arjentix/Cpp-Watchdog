@@ -8,6 +8,10 @@ class Window:
         self._screen = curses.initscr()
         curses.start_color()
         curses.use_default_colors()
+
+        if (curses.has_colors() or curses.COLORS < 8):
+            print('Can\'t display colors. Terminating...')
+
         curses.noecho()
         self._screen.refresh()
         self._screen.scrollok(True)
@@ -15,19 +19,23 @@ class Window:
         self.BUILD_STATUS_POS = (0, 10)
         self.OUTPUT_POS = (2, 0)
 
+        # curses.init_color(8, 128, 128, 128)
+        curses.init_color(8, 119, 136, 153)
+
         curses.init_pair(1, curses.COLOR_RED, -1)
         curses.init_pair(2, curses.COLOR_GREEN, -1)
         curses.init_pair(3, curses.COLOR_WHITE, -1)
         curses.init_pair(4, curses.COLOR_CYAN, -1)
+        curses.init_pair(5, 8, -1)
 
         self.ERROR_ATTR = curses.color_pair(1)
         self.OK_ATTR = curses.color_pair(2)
         self.TESTSUITE_ATTR = curses.color_pair(3)
         self.TEST_ATTR = curses.color_pair(4)
-        self.TEST_FAIL_ATTR = curses.A_DIM
+        self.TEST_FAIL_ATTR = curses.color_pair(5)
         self.IMPORTANT_ATTR = curses.color_pair(3) | curses.A_BOLD
         self.BUILD_ERROR_ATTR = curses.color_pair(3)
-        self.BASIC_TEXT = curses.A_DIM
+        self.BASIC_TEXT = curses.color_pair(5)
 
         self.KEY_ENTER = curses.KEY_ENTER
         self._key_to_handler = {}
