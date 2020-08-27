@@ -27,9 +27,11 @@ class Window:
         self.TEST_FAIL_ATTR = curses.A_DIM
         self.IMPORTANT_ATTR = curses.color_pair(3) | curses.A_BOLD
         self.BUILD_ERROR_ATTR = curses.color_pair(3)
+        self.BASIC_TEXT = curses.A_DIM
 
         self.KEY_ENTER = curses.KEY_ENTER
         self._key_to_handler = {}
+        self._key_to_description = {}
         self._alive = True
         self._input_thread = Thread(target=self._process_input)
         self._input_thread.start()
@@ -42,8 +44,11 @@ class Window:
         self._alive = False
         self._building = False
     
-    def add_key_handler(self, key, handler):
-        self._key_to_handler[key] = handler
+    def add_key_handler(self, key_code, handler):
+        self._key_to_handler[key_code] = handler
+    
+    def add_key_description(self, key_str, description):
+        self._key_to_description[key_str] = description
     
     def display_build_start(self):
         self._building = True
@@ -62,6 +67,7 @@ class Window:
     def display_build_output(self, output):
         self._screen.move(self.OUTPUT_POS[0], self.OUTPUT_POS[1])
         self._screen.addstr(output, self.BUILD_ERROR_ATTR)
+        self._print_hotkeys()
         self._screen.refresh()
         return
 
@@ -84,6 +90,7 @@ class Window:
                 self._screen.addstr('    ')
                 self._print_test_info(test)
 
+        self._print_hotkeys()
         self._screen.refresh()
 
     def _display_status(self, is_ok, attribute = 0):
@@ -138,3 +145,9 @@ class Window:
                 self._screen.addstr(info, self.TEST_FAIL_ATTR)
 
         self._screen.addch('\n')
+    
+    def _print_hotkeys(self):
+        for key, description in self._key_to_description.items():
+            self._screen.addstr('\nPress ', self.BASIC_TEXT)
+            self._screen.addstr(key, self.IMPORTANT_ATTR)
+            self._screen.addstr(' to ' + description, self.BASIC_TEXT)

@@ -42,6 +42,17 @@ def get_args(argv):
 
     return [build_command, test_bin, files]
 
+def init_hotkeys(window, handler):
+    # Registration of 3 types of Enter key
+    window.add_key_handler(window.KEY_ENTER, handler.on_any_event)
+    window.add_key_handler(10, handler.on_any_event)
+    window.add_key_handler(13, handler.on_any_event)
+
+    window.add_key_handler(ord('q'), quit_program)
+
+    window.add_key_description('Enter', "rerun build & tests")   
+    window.add_key_description('q', "quit")   
+
 def quit_program():
     global window, stop
     window.stop()
@@ -53,17 +64,11 @@ def main():
     observer = PausingObserver()
     handler = EventHandler(observer, window, build_command, test_bin)
 
+    init_hotkeys(window, handler)
+
     # Initial run
     handler.on_any_event(None)
 
-    # Registration of 3 types of Enter key
-    window.add_key_handler(window.KEY_ENTER, handler.on_any_event)
-    window.add_key_handler(10, handler.on_any_event)
-    window.add_key_handler(13, handler.on_any_event)
-
-    window.add_key_handler(ord('q'), quit_program)
-
-    # observer = Observer()
     for file in files:
         observer.schedule(handler, file, recursive=True)
     observer.start()
