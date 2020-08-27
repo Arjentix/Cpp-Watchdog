@@ -1,3 +1,10 @@
+'''
+@author: Polyakov Daniil
+@mail: arjentix@gmail.com
+@github: Arjentix
+@date: 30.07.20
+'''
+
 import curses
 import sys
 from threading import Thread
