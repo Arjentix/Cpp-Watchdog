@@ -7,32 +7,41 @@
 
 from watchdog.events import FileSystemEventHandler
 import subprocess
-import os 
+import os
 import json
 import time 
-import traceback
+import re
 
 class EventHandler(FileSystemEventHandler):
-    def __init__(self, observer, window, build_command, test_bin):
+    def __init__(self, observer, window, params):
         self._observer = observer
         self._window = window
-        self._build_command = build_command
-        self._test_bin = test_bin
+        self._params = params
+        self._ignore_pattern = re.compile(params['ignore'])
 
     def on_any_event(self, event = None):
         with self._observer.ignore_events():
+            if event is not None:
+                if self._ignore_pattern.match(event.src_path):
+                    return
+
             self._window.display_build_start()
-            completed_proc = subprocess.run(self._build_command.split(), capture_output=True)
+            completed_proc = subprocess.run(
+                self._params['build_command'].split(),
+                capture_output=True)
             self._window.display_build_status(completed_proc.returncode)
 
             if completed_proc.returncode == 0:
                 result_file = '/tmp/watchdog_test_results.json'
                 devnull = open(os.devnull, 'w')
-                completed_proc = subprocess.run([self._test_bin, f'--gtest_output=json:{result_file}'], stdout=devnull)
+                completed_proc = subprocess.run([self._params['test_bin'], f'--gtest_output=json:{result_file}'], stdout=devnull)
 
                 with open(result_file) as json_file:
-                    test_results = json.load(json_file)
-                    self._window.display_tests(test_results)
-                os.remove(result_file)            
+                    try:
+                        test_results = json.load(json_file)
+                        self._window.display_tests(test_results)
+                    except json.decoder.JSONDecodeError as e:
+                        print("Error: ", e)
+                os.remove(result_file)
             else:
                 self._window.display_build_output(completed_proc.stderr)

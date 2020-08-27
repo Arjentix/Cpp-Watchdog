@@ -17,30 +17,27 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler 
 import getopt
 
+params = {}
 window = Window()
 stop = False
 
-def get_args(argv):
-    home = '.'
-    build_command = ''
-    test_bin = f'{home}/build/test/test'
-    files = [home]
+def parse_args(argv):
+    params['build_command'] = 'cmake --build build --config Debug --target all -- -j 10'
+    params['test_bin'] = './build/test/test'
+    params['ignore'] = '\\./build/*'
+    params['files'] = ['.']
 
-    optlist, args = getopt.getopt(argv, 'h:b:t:', ['home=', 'build-command=', 'test-bin='])
+    optlist, args = getopt.getopt(argv, 'b:t:i:', ['build-command=', 'test-bin=', 'ignore='])
     for opt, arg in optlist:
-        if opt in ('-h', '-home'):
-            home = arg
-        elif opt in ('-b', '--build-command'):
-            build_command = arg
+        if opt in ('-b', '--build-command'):
+            params['build_command'] = arg
         elif opt in ('-t', '--test-bin'):
-            test_bin = arg
+            params['test_bin'] = arg
+        elif opt in ('-i', '--ignore'):
+            params['ignore'] = arg
 
-    if build_command == '':
-        build_command = 'cmake --build build --config Debug --target all -- -j 10'
     if len(args) != 0:
-        files = args
-
-    return [build_command, test_bin, files]
+        params['files'] = args
 
 def init_hotkeys(window, handler):
     # Registration of 3 types of Enter key
@@ -59,23 +56,23 @@ def quit_program():
     stop = True
 
 def main():
-    global window, stop
-    build_command, test_bin, files = get_args(sys.argv[1:])
+    global window, stop, params
+    parse_args(sys.argv[1:])
     observer = PausingObserver()
-    handler = EventHandler(observer, window, build_command, test_bin)
+    handler = EventHandler(observer, window, params)
 
     init_hotkeys(window, handler)
 
     # Initial run
     handler.on_any_event(None)
 
-    for file in files:
+    for file in params['files']:
         observer.schedule(handler, file, recursive=True)
     observer.start()
 
     try:
         while not stop:
-            time.sleep(0.1)
+            time.sleep(1)
     except KeyboardInterrupt:
         pass
     observer.stop()
