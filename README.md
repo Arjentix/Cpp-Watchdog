@@ -60,7 +60,6 @@ If you don't want to always type these long options you can use a *config file* 
       "...",
       "..."
     ],
-    // By using config you can specify more than one regex to ignore
     "ignore" : [
       "...",
       "..."
@@ -68,10 +67,12 @@ If you don't want to always type these long options you can use a *config file* 
   },
   
   "path/to/other/project" : {
-    ...
+    "..."
   }
 }
 ```
+
+> By using config you can specify more than one regex to ignore
 
 ## About CMake Generators & Build Systems
 
