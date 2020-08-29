@@ -16,25 +16,56 @@ import time
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler 
 import getopt
+import json
+import pathlib
 
 params = {}
 window = Window()
 stop = False
 
+def copy_params(conf_params):
+    global params
+    for param in params:
+        if param in conf_params:
+            params[param] = conf_params[param]
+
+def parse_config():
+    global params
+    if not pathlib.Path(params['config']).is_file():
+        return
+
+    with open(params['config']) as config_json:
+        try:
+            conf = json.load(config_json)
+            for path_str, conf_params in conf.items():
+                if pathlib.Path(path_str).expanduser().resolve() == pathlib.Path().resolve():
+                    # There is configuration for current directory
+                    copy_params(conf_params)
+                    break
+        except json.decoder.JSONDecodeError as e:
+            print("Config in wrong format: ", e)
+
+
 def parse_args(argv):
+    global params
+    params['config'] = pathlib.Path('~/.cppw.json').expanduser().as_posix()
     params['build_command'] = 'cmake --build build --config Debug --target all -- -j 10'
     params['test_bin'] = './build/test/test'
     params['ignore'] = '\\./build/*'
     params['files'] = ['.']
 
-    optlist, args = getopt.getopt(argv, 'b:t:i:', ['build-command=', 'test-bin=', 'ignore='])
+    optlist, args = getopt.getopt(argv, 'c:b:t:i:', ['--config=', 'build-command=', 'test-bin=', 'ignore='])
     for opt, arg in optlist:
-        if opt in ('-b', '--build-command'):
+        if opt in ('-c', '--config'):
+            params['config'] = pathlib.Path(arg).expanduser().as_posix()
+        elif opt in ('-b', '--build-command'):
             params['build_command'] = arg
         elif opt in ('-t', '--test-bin'):
             params['test_bin'] = arg
         elif opt in ('-i', '--ignore'):
             params['ignore'] = arg
+
+    parse_config()
 
     if len(args) != 0:
         params['files'] = args
