@@ -16,13 +16,19 @@ class EventHandler(FileSystemEventHandler):
         self._observer = observer
         self._window = window
         self._params = params
-        self._ignore_pattern = re.compile(params['ignore'])
+        self._ignore_patterns = []
+        if isinstance(params['ignore'], str):
+            self._ignore_patterns.append(re.compile(params['ignore']))
+        elif isinstance(params['ignore'], list):
+            for regex in params['ignore']:
+                self._ignore_patterns.append(re.compile(regex))
 
     def on_any_event(self, event = None):
         with self._observer.ignore_events():
             if event is not None:
-                if self._ignore_pattern.match(event.src_path):
-                    return
+                for pattern in self._ignore_patterns:
+                    if pattern.match(event.src_path):
+                        return
 
             self._window.display_build_start()
             completed_proc = subprocess.run(
