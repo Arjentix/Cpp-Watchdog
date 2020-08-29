@@ -78,7 +78,7 @@ If you don't want to always type these long options you can use a *config file* 
 
 *CMake* can generate a lot of different build files for different build systems.
 
-This project was tested only with [Unix Makefiles](https://cmake.org/cmake/help/latest/generator/Unix Makefiles.html) and [Ninja](https://cmake.org/cmake/help/latest/generator/Ninja.html).
+This project was tested only with [Unix Makefiles](https://cmake.org/cmake/help/latest/generator/Unix%20Makefiles.html) and [Ninja](https://cmake.org/cmake/help/latest/generator/Ninja.html).
 
 ## Known issues
 
