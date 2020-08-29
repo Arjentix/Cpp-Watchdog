@@ -82,7 +82,7 @@ This project was tested only with [Unix Makefiles](https://cmake.org/cmake/help/
 
 ## Known issues
 
-Per-file watching is only supported on Linux cause of [watchdog](https://github.com/gorakhargosh/watchdog) library has it implemented only for [pyinotify](http://github.com/seb-m/pyinotify), which is a Linux notifying system.
+Per-file watching is only supported on Linux cause of [watchdog](https://github.com/gorakhargosh/watchdog) library has it implemented only for [pyinotify](http://github.com/seb-m/pyinotify), which is a library working with Linux notifying system.
 
 So, on Mac you can only watch directories, but this doesn't seem like a big problem, because you can always specify which files to ignore, if you want to.
 
