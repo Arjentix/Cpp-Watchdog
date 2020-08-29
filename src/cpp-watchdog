@@ -94,12 +94,12 @@ def main():
 
     init_hotkeys(window, handler)
 
-    # Initial run
-    handler.on_any_event(None)
-
     for file in params['files']:
         observer.schedule(handler, file, recursive=True)
     observer.start()
+
+    # Initial run
+    handler.on_any_event(None)
 
     try:
         while not stop:

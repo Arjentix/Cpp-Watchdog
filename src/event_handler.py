@@ -9,7 +9,6 @@ from watchdog.events import FileSystemEventHandler
 import subprocess
 import os
 import json
-import time 
 import re
 
 class EventHandler(FileSystemEventHandler):
@@ -44,4 +43,10 @@ class EventHandler(FileSystemEventHandler):
                         print("Error: ", e)
                 os.remove(result_file)
             else:
-                self._window.display_build_output(completed_proc.stderr)
+                if (self._get_cmake_generator() == 'Ninja'):
+                    self._window.display_build_output(completed_proc.stdout)
+                else:
+                    self._window.display_build_output(completed_proc.stderr)
+
+    def _get_cmake_generator(self):
+        return subprocess.check_output("cat build/CMakeCache.txt | grep CMAKE_GENERATOR:INTERNAL= | sed 's/^.*=//'", shell=True).decode().strip()
